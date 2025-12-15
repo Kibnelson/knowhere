@@ -539,6 +539,11 @@ MinHashLSH::BatchSearch(const char* query, size_t nq, float* distances, idx_t* l
         }
         WaitAllSuccess(futures);
         futures.clear();
+
+        for (size_t idx = 0; idx < nq; idx++) {
+                DebugLogCandidates("band_batch_nojaccard", idx, all_res[idx].ids_list_, all_res[idx].count(),
+                                   all_res[idx].dis_list_);
+        }
         std::vector<size_t> new_access_list;
         for (auto q_i : access_list) {
             if (!all_res[q_i].full()) {
