@@ -11,7 +11,7 @@
 #include "index/minhash/minhash_util.h"
 namespace knowhere::minhash {
 namespace {
-using JcaccardSim = faiss::CMin<float, idx_t>;
+using JcaccardSim = faiss::CMax<float, idx_t>;
 using DIST1FUNC = float (*)(const char* x, const char* y, size_t element_length, size_t element_size);
 using DIST4FUNC = void (*)(const char* x, const char* y0, const char* y1, const char* y2, const char* y3, size_t size,
                            size_t element_size, float& dis0, float& dis1, float& dis2, float& dis3);
@@ -77,7 +77,7 @@ struct MinHashJaccardComputer : faiss::DistanceComputer {
     }
     float
     distance_to_code(const void* x) {
-        return 1.0f-dist1(q, (const char*)x, element_length, element_size);
+        return dist1(q, (const char*)x, element_length, element_size);
     }
     float
     operator()(idx_t i) override {
