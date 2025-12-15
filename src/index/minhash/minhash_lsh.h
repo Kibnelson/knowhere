@@ -441,6 +441,12 @@ MinHashLSH::Search(const char* query, float* distances, idx_t* labels, MinHashLS
             break;
     }
     if (search_with_jaccard) {
+
+        for (size_t i = 0; i < topk; i++) {
+            labels[i] = -1;
+            distances[i] = std::numeric_limits<float>::max();
+        }
+        
         MinHashJaccardKNNSearchByIDs(query, this->raw_data_, reorder_ids.get(), this->mh_vec_length_,
                                      this->mh_vec_elememt_size_, res->topk_, topk, distances, labels);
     }
@@ -464,21 +470,21 @@ MinHashLSH::BatchSearch(const char* query, size_t nq, float* distances, idx_t* l
     std::shared_ptr<idx_t[]> reorder_ids_list = nullptr;
     std::shared_ptr<float[]> reorder_dis_list = nullptr;
     std::vector<MinHashLSHResultHandler> all_res;
-    if (search_with_jaccard) {
-        auto refine_k = std::max(params->refine_k, topk);
-        reorder_ids_list = std::shared_ptr<idx_t[]>(new idx_t[nq * refine_k]);
-        reorder_dis_list = std::shared_ptr<float[]>(new float[nq * refine_k]);
-        all_res.reserve(nq);
-        for (size_t i = 0; i < nq; i++) {
-            all_res.emplace_back(reorder_ids_list.get() + i * refine_k, reorder_dis_list.get() + i * refine_k,
-                                 refine_k);
-        }
-    } else {
+    // if (search_with_jaccard) {
+    //     auto refine_k = std::max(params->refine_k, topk);
+    //     reorder_ids_list = std::shared_ptr<idx_t[]>(new idx_t[nq * refine_k]);
+    //     reorder_dis_list = std::shared_ptr<float[]>(new float[nq * refine_k]);
+    //     all_res.reserve(nq);
+    //     for (size_t i = 0; i < nq; i++) {
+    //         all_res.emplace_back(reorder_ids_list.get() + i * refine_k, reorder_dis_list.get() + i * refine_k,
+    //                              refine_k);
+    //     }
+    // } else {
         all_res.reserve(nq);
         for (size_t i = 0; i < nq; i++) {
             all_res.emplace_back(labels + i * topk, distances + i * topk, topk);
         }
-    }
+    // }
     // prepare query key
     std::vector<minhash::KeyType> query_hash_v;
     query_hash_v.reserve(nq * band_);
@@ -552,6 +558,11 @@ MinHashLSH::BatchSearch(const char* query, size_t nq, float* distances, idx_t* l
                 auto refine_k = all_res[i].topk_;
                 auto res_ids = labels + i * topk;
                 auto res_dis = distances + i * topk;
+                for (size_t j = 0; j < topk; j++) {
+                    res_ids[j] = -1;
+                    res_dis[j] = std::numeric_limits<float>::max();
+                }
+                
                 MinHashJaccardKNNSearchByIDs(q, this->raw_data_, reorder_ids, this->mh_vec_length_,
                                              this->mh_vec_elememt_size_, refine_k, topk, res_dis, res_ids);
                 return;
