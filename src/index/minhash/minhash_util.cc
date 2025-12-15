@@ -77,7 +77,7 @@ struct MinHashJaccardComputer : faiss::DistanceComputer {
     }
     float
     distance_to_code(const void* x) {
-        return dist1(q, (const char*)x, element_length, element_size);
+        return 1.0f-dist1(q, (const char*)x, element_length, element_size);
     }
     float
     operator()(idx_t i) override {
