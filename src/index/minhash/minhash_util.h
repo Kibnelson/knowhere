@@ -76,6 +76,10 @@ struct MinHashLSHResultHandler {
 std::pair<size_t, size_t>
 OptimizeMinHashLSHParams(size_t original_dim, size_t band);
 
+// Debug helper (opt-in via env MINHASH_DEBUG_LOG).
+void
+DebugLogCandidates(const char* stage, size_t qidx, const int64_t* ids, size_t count, const float* vals = nullptr);
+
 inline minhash::KeyType
 GetHashKey(const char* data, size_t size /*in bytes*/, size_t band, size_t band_i) {
     const size_t r = size / band;
