@@ -363,35 +363,50 @@ void
 MinHashJaccardKNNSearchByIDs(const char* x, const char* y, const int64_t* sel_ids, size_t length, size_t element_size,
                              size_t sel_ids_num, size_t topk, float* res_vals, int64_t* res_ids) {
     // init
+    size_t n_out = std::min(sel_ids_num, topk);
     for (size_t i = 0; i < topk; i++) {
         // res_vals[i] = 0.0;
         res_vals[i] = std::numeric_limits<float>::max();
 
         res_ids[i] = -1;
     }
-    faiss::heap_heapify<JcaccardSim>(topk, res_vals, res_ids);
-    auto apply = [&](const float dis_in, const size_t j) {
-        if (JcaccardSim::cmp(res_vals[0], dis_in)) {
-            faiss::heap_replace_top<JcaccardSim>(topk, res_vals, res_ids, dis_in, j);
-        }
-    };
+    // faiss::heap_heapify<JcaccardSim>(topk, res_vals, res_ids);
+    // auto apply = [&](const float dis_in, const size_t j) {
+    //     if (JcaccardSim::cmp(res_vals[0], dis_in)) {
+    //         faiss::heap_replace_top<JcaccardSim>(topk, res_vals, res_ids, dis_in, j);
+    //     }
+    // };
     auto computer = std::make_shared<MinHashJaccardComputer>(y, length, element_size);
     computer->set_query((const float*)x);
     size_t i = 0;
     float dis0, dis1, dis2, dis3;
-    for (; i + 4 < sel_ids_num; i += 4) {
+    for (; i + 4 <= n_out; i += 4) {
+    // for (; i + 4 < sel_ids_num; i += 4) {
         computer->distances_batch_4(sel_ids[i], sel_ids[i + 1], sel_ids[i + 2], sel_ids[i + 3], dis0, dis1, dis2, dis3);
         apply(dis0, sel_ids[i]);
         apply(dis1, sel_ids[i + 1]);
         apply(dis2, sel_ids[i + 2]);
         apply(dis3, sel_ids[i + 3]);
+        res_vals[i] = dis0;
+        res_ids[i] = sel_ids[i];
+        res_vals[i + 1] = dis1;
+        res_ids[i + 1] = sel_ids[i + 1];
+        res_vals[i + 2] = dis2;
+        res_ids[i + 2] = sel_ids[i + 2];
+        res_vals[i + 3] = dis3;
+        res_ids[i + 3] = sel_ids[i + 3];
     }
-    while (i < sel_ids_num) {
-        auto dis = computer->operator()(sel_ids[i]);
-        apply(dis, sel_ids[i]);
+    // while (i < sel_ids_num) {
+    //     auto dis = computer->operator()(sel_ids[i]);
+    //     apply(dis, sel_ids[i]);
+    //     i++;
+    // }
+    while (i < n_out) {
+        res_vals[i] = computer->operator()(sel_ids[i]);
+        res_ids[i] = sel_ids[i];
         i++;
     }
-    faiss::heap_reorder<JcaccardSim>(topk, res_vals, res_ids);
+    // faiss::heap_reorder<JcaccardSim>(topk, res_vals, res_ids);
 }
 
 Status
