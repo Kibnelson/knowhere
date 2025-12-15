@@ -383,10 +383,10 @@ MinHashJaccardKNNSearchByIDs(const char* x, const char* y, const int64_t* sel_id
     for (; i + 4 <= n_out; i += 4) {
     // for (; i + 4 < sel_ids_num; i += 4) {
         computer->distances_batch_4(sel_ids[i], sel_ids[i + 1], sel_ids[i + 2], sel_ids[i + 3], dis0, dis1, dis2, dis3);
-        apply(dis0, sel_ids[i]);
-        apply(dis1, sel_ids[i + 1]);
-        apply(dis2, sel_ids[i + 2]);
-        apply(dis3, sel_ids[i + 3]);
+        // apply(dis0, sel_ids[i]);
+        // apply(dis1, sel_ids[i + 1]);
+        // apply(dis2, sel_ids[i + 2]);
+        // apply(dis3, sel_ids[i + 3]);
         res_vals[i] = dis0;
         res_ids[i] = sel_ids[i];
         res_vals[i + 1] = dis1;
