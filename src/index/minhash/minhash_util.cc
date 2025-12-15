@@ -10,6 +10,11 @@
 // or implied. See the License for the specific language governing permissions and limitations under the License.
 #include "index/minhash/minhash_util.h"
 #include <limits>
+#include <cstdlib>
+#include <fstream>
+#include <limits>
+#include <mutex>
+#include <string>
 namespace knowhere::minhash {
 namespace {
 using JcaccardSim = faiss::CMin<float, idx_t>;
@@ -334,7 +339,33 @@ MinHashLSHHitByNy(const char* x, const char* y, size_t size_in_bytes, size_t ele
         }
     }
 }
-
+void
+DebugLogCandidates(const char* stage, size_t qidx, const int64_t* ids, size_t count, const float* vals) {
+    static std::mutex mu;
+    static const std::string path = []() {
+        const char* env = std::getenv("MINHASH_DEBUG_LOG");
+        return env ? std::string(env) : std::string();
+    }();
+    if (path.empty()) {
+        return;
+    }
+    std::lock_guard<std::mutex> g(mu);
+    std::ofstream ofs(path, std::ios::app);
+    if (!ofs) {
+        return;
+    }
+    ofs << stage << " qidx=" << qidx << " count=" << count << " ids=[";
+    for (size_t i = 0; i < count; i++) {
+        ofs << ids[i];
+        if (vals) {
+            ofs << ":" << vals[i];
+        }
+        if (i + 1 != count) {
+            ofs << ",";
+        }
+    }
+    ofs << "]\n";
+}
 void
 MinHashJaccardKNNSearchByNy(const char* x, const char* y, size_t length, size_t element_size, size_t ny, size_t topk,
                             const BitsetView& bitset, float* vals, int64_t* ids) {
@@ -407,6 +438,8 @@ MinHashJaccardKNNSearchByIDs(const char* x, const char* y, const int64_t* sel_id
         i++;
     }
     // faiss::heap_reorder<JcaccardSim>(topk, res_vals, res_ids);
+      DebugLogCandidates("jaccard_ids", /*qidx=*/0, res_ids, n_out, res_vals);
+
 }
 
 Status
