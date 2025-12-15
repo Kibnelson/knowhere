@@ -440,6 +440,9 @@ MinHashLSH::Search(const char* query, float* distances, idx_t* labels, MinHashLS
         if (res->full())
             break;
     }
+
+    DebugLogCandidates("band_single_nojaccard", /*qidx=*/0, res->ids_list_, res->count(), res->dis_list_);
+
     if (search_with_jaccard) {
 
         for (size_t i = 0; i < topk; i++) {
