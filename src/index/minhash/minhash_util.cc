@@ -9,6 +9,7 @@
 // is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express
 // or implied. See the License for the specific language governing permissions and limitations under the License.
 #include "index/minhash/minhash_util.h"
+#include <limits>
 namespace knowhere::minhash {
 namespace {
 using JcaccardSim = faiss::CMin<float, idx_t>;
@@ -91,10 +92,14 @@ struct MinHashJaccardComputer : faiss::DistanceComputer {
         const char* y_2 = base + idx2 * vec_size;
         const char* y_3 = base + idx3 * vec_size;
         dist4(q, y_0, y_1, y_2, y_3, element_length, element_size, dis0, dis1, dis2, dis3);
+        dis0 = 1.0f - dis0;
+        dis1 = 1.0f - dis1;
+        dis2 = 1.0f - dis2;
+        dis3 = 1.0f - dis3;
     }
     float
     symmetric_dis(idx_t i, idx_t j) override {
-        return dist1(base + i * vec_size, base + j * vec_size, element_length, element_size);
+        return 1.0f-dist1(base + i * vec_size, base + j * vec_size, element_length, element_size);
     }
 };
 
@@ -335,7 +340,9 @@ MinHashJaccardKNNSearchByNy(const char* x, const char* y, size_t length, size_t 
                             const BitsetView& bitset, float* vals, int64_t* ids) {
     // init
     for (size_t i = 0; i < topk; i++) {
-        vals[i] = 0.0f;
+        // vals[i] = 0.0f;
+        vals[i] = std::numeric_limits<float>::max();
+
         ids[i] = -1;
     }
     auto computer = std::make_shared<MinHashJaccardComputer>(y, length, element_size);
@@ -357,9 +364,12 @@ MinHashJaccardKNNSearchByIDs(const char* x, const char* y, const int64_t* sel_id
                              size_t sel_ids_num, size_t topk, float* res_vals, int64_t* res_ids) {
     // init
     for (size_t i = 0; i < topk; i++) {
-        res_vals[i] = 0.0;
+        // res_vals[i] = 0.0;
+        vals[i] = std::numeric_limits<float>::max();
+
         res_ids[i] = -1;
     }
+    faiss::heap_heapify<JcaccardSim>(topk, res_vals, res_ids);
     auto apply = [&](const float dis_in, const size_t j) {
         if (JcaccardSim::cmp(res_vals[0], dis_in)) {
             faiss::heap_replace_top<JcaccardSim>(topk, res_vals, res_ids, dis_in, j);
