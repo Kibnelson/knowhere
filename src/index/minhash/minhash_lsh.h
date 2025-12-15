@@ -446,7 +446,7 @@ MinHashLSH::Search(const char* query, float* distances, idx_t* labels, MinHashLS
             labels[i] = -1;
             distances[i] = std::numeric_limits<float>::max();
         }
-        
+        DebugLogCandidates("band_single", /*qidx=*/0, reorder_ids.get(), res->topk_);
         MinHashJaccardKNNSearchByIDs(query, this->raw_data_, reorder_ids.get(), this->mh_vec_length_,
                                      this->mh_vec_elememt_size_, res->topk_, topk, distances, labels);
     }
@@ -562,7 +562,7 @@ MinHashLSH::BatchSearch(const char* query, size_t nq, float* distances, idx_t* l
                     res_ids[j] = -1;
                     res_dis[j] = std::numeric_limits<float>::max();
                 }
-                
+                DebugLogCandidates("band_batch", id, reorder_ids, refine_k);
                 MinHashJaccardKNNSearchByIDs(q, this->raw_data_, reorder_ids, this->mh_vec_length_,
                                              this->mh_vec_elememt_size_, refine_k, topk, res_dis, res_ids);
                 return;
