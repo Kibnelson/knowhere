@@ -394,7 +394,7 @@ void
 MinHashJaccardKNNSearchByIDs(const char* x, const char* y, const int64_t* sel_ids, size_t length, size_t element_size,
                              size_t sel_ids_num, size_t topk, float* res_vals, int64_t* res_ids) {
     // init
-    size_t n_out = std::min(sel_ids_num, topk);
+    size_t n_out = std::max(sel_ids_num, topk);
     for (size_t i = 0; i < topk; i++) {
         // res_vals[i] = 0.0;
         res_vals[i] = std::numeric_limits<float>::max();
