@@ -421,15 +421,15 @@ MinHashLSH::Search(const char* query, float* distances, idx_t* labels, MinHashLS
     std::shared_ptr<idx_t[]> reorder_ids = nullptr;
     std::shared_ptr<float[]> reorder_dis = nullptr;
     std::shared_ptr<MinHashLSHResultHandler> res = nullptr;
-    if (search_with_jaccard) {
-        auto refine_k = std::max(params->refine_k, topk);
-        reorder_ids = std::shared_ptr<idx_t[]>(new idx_t[refine_k]);
-        reorder_dis = std::shared_ptr<float[]>(new float[refine_k]);
-        res = std::shared_ptr<MinHashLSHResultHandler>(
-            new MinHashLSHResultHandler(reorder_ids.get(), reorder_dis.get(), refine_k));
-    } else {
+    // if (search_with_jaccard) {
+    //     auto refine_k = std::max(params->refine_k, topk);
+    //     reorder_ids = std::shared_ptr<idx_t[]>(new idx_t[refine_k]);
+    //     reorder_dis = std::shared_ptr<float[]>(new float[refine_k]);
+    //     res = std::shared_ptr<MinHashLSHResultHandler>(
+    //         new MinHashLSHResultHandler(reorder_ids.get(), reorder_dis.get(), refine_k));
+    // } else {
         res = std::shared_ptr<MinHashLSHResultHandler>(new MinHashLSHResultHandler(labels, distances, topk));
-    }
+    // }
     for (size_t i = 0; i < band_; i++) {
         const auto hash = GetHashKey(query, this->mh_vec_elememt_size_ * this->band_ * this->r_, band_, i);
         auto& band = band_index_[i];
@@ -445,10 +445,10 @@ MinHashLSH::Search(const char* query, float* distances, idx_t* labels, MinHashLS
 
     if (search_with_jaccard) {
 
-        for (size_t i = 0; i < topk; i++) {
-            labels[i] = -1;
-            distances[i] = std::numeric_limits<float>::max();
-        }
+        // for (size_t i = 0; i < topk; i++) {
+        //     labels[i] = -1;
+        //     distances[i] = std::numeric_limits<float>::max();
+        // }
         DebugLogCandidates("band_single", /*qidx=*/0, reorder_ids.get(), res->topk_);
         MinHashJaccardKNNSearchByIDs(query, this->raw_data_, reorder_ids.get(), this->mh_vec_length_,
                                      this->mh_vec_elememt_size_, res->topk_, topk, distances, labels);
